@@ -7,8 +7,9 @@ import static org.mockito.Mockito.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.stubbing.Answer;
 import org.sergio.appmockito.ejemplos.models.Examen;
 import org.sergio.appmockito.ejemplos.repositories.ExamenRepository;
 import org.sergio.appmockito.ejemplos.repositories.PreguntaRepository;
@@ -114,7 +115,45 @@ class ExamenServiceImplTest {
             verify(preguntaRepository).findPreguntasPorExamenId(5L);
         }
 
+        @Test
+        @DisplayName("Prueba Guardar Examen")
+        void testGuardarExamen() {
+            Examen newExamen=Datos.EXAMEN;
+            newExamen.setPreguntas(Datos.PREGUNTAS);
+            when(repository.guardar(any(Examen.class))).thenReturn(Datos.EXAMEN);
+            Examen examen=service.guardar(newExamen);
+            assertNotNull(examen.getId());
+            assertEquals(8L,examen.getId());
+            assertEquals("Física",examen.getNombre());
+            verify(repository).guardar(any(Examen.class));
+            verify(preguntaRepository).guardarVarias(anyList());
+        }
 
+        @Test
+        @DisplayName("Prueba Guardar Examen")
+        void testGuardarExamen2() {
+            // DADO
+            Examen newExamen=Datos.EXAMEN;
+            newExamen.setPreguntas(Datos.PREGUNTAS);
+            when(repository.guardar(any(Examen.class))).then(new Answer<Examen>() {
+                Long secuencia=8L;
+
+                @Override
+                public Examen answer(InvocationOnMock invocation) throws Throwable {
+                    Examen examen=invocation.getArgument(0);
+                    examen.setId(secuencia++);
+                    return examen;
+                }
+            });
+            //WHE
+            Examen examen=service.guardar(newExamen);
+            //THEN
+            assertNotNull(examen.getId());
+            assertEquals(8L,examen.getId());
+            assertEquals("Física",examen.getNombre());
+            verify(repository).guardar(any(Examen.class));
+            verify(preguntaRepository).guardarVarias(anyList());
+        }
     }
 
 }
