@@ -8,9 +8,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 import org.sergio.appmockito.ejemplos.Datos;
 import org.sergio.appmockito.ejemplos.models.Examen;
+import org.sergio.appmockito.ejemplos.repositories.ExamenRepository;
 import org.sergio.appmockito.ejemplos.repositories.ExamenRepositoryImpl;
+import org.sergio.appmockito.ejemplos.repositories.PreguntaRepository;
 import org.sergio.appmockito.ejemplos.repositories.PreguntaRepositoryImpl;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -284,6 +287,51 @@ class ExamenServiceImplTest {
             assertEquals("Matemáticas",examen.getNombre());
             assertTrue(examen.getPreguntas().contains("Geometría"));
         }
+
+        @Test
+        @DisplayName("Prueba Invocar el método SPY")
+        void testSpy() {
+            // DADO
+            ExamenRepository examenRepository=spy(ExamenRepositoryImpl.class);
+            PreguntaRepository preguntaRepository=spy(PreguntaRepositoryImpl.class);
+            ExamenService examenService=new ExamenServiceImpl(examenRepository,preguntaRepository);
+
+            List<String> preguntas= Arrays.asList("Geometría");
+            //when(preguntaRepository.findPreguntasPorExamenId(anyLong())).thenReturn(preguntas);
+            doReturn(preguntas).when(preguntaRepository).findPreguntasPorExamenId(anyLong());
+            Examen examen=examenService.findExamenPorNombreConPreguntas("Matemáticas");
+            assertEquals(5L,examen.getId());
+            assertEquals("Matemáticas",examen.getNombre());
+            assertEquals(1,examen.getPreguntas().size());
+            assertTrue(examen.getPreguntas().contains("Geometría"));
+            verify(examenRepository).findAll();
+            verify(preguntaRepository).findPreguntasPorExamenId(anyLong());
+        }
+
+        @Test
+        @DisplayName("Prueba Invocar el orden de invocacioNES")
+        void testOrdenDeInvocaciones() {
+            when(repository.findAll()).thenReturn(Datos.EXAMENES);
+            service.findExamenPorNombreConPreguntas("Matemáticas");
+            service.findExamenPorNombreConPreguntas("Lenguage");
+            InOrder inOrder=inOrder(preguntaRepository);
+            inOrder.verify(preguntaRepository).findPreguntasPorExamenId(5L);
+            inOrder.verify(preguntaRepository).findPreguntasPorExamenId(6L);
+        }
+
+        @Test
+        @DisplayName("Prueba Invocar el orden de invocacioNES")
+        void testOrdenDeInvocaciones2() {
+            when(repository.findAll()).thenReturn(Datos.EXAMENES);
+            service.findExamenPorNombreConPreguntas("Matemáticas");
+            service.findExamenPorNombreConPreguntas("Lenguage");
+            InOrder inOrder=inOrder(repository,preguntaRepository);
+            inOrder.verify(repository).findAll();
+            inOrder.verify(preguntaRepository).findPreguntasPorExamenId(5L);
+            inOrder.verify(repository).findAll();
+            inOrder.verify(preguntaRepository).findPreguntasPorExamenId(6L);
+        }
+
 
     }
 
