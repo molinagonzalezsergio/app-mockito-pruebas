@@ -1,4 +1,4 @@
-package org.sergio.appmockito.ejemplos.services;
+package org.sergio.appmockito.ejemplos;
 
 import org.sergio.appmockito.ejemplos.models.Examen;
 
@@ -15,6 +15,11 @@ public class Datos {
             new Examen(null,"Matemáticas"),
             new Examen(null,"Lenguage"),
             new Examen(null,"Historia")
+    );
+    public final static  List<Examen> EXAMENES_ID_NEGATIVOS= Arrays.asList(
+            new Examen(-5L,"Matemáticas"),
+            new Examen(null,"Lenguage"),
+            new Examen(-7L,"Historia")
     );
     public final static  List<String> PREGUNTAS= Arrays.asList(
            "Aritméticas",
